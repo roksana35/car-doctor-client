@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
-import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, linkWithCredential, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import app from "../firebase/firebase.config";
+import axios from "axios";
 
 export const AuthContext = createContext();
 const auth = getAuth(app);
@@ -26,8 +27,24 @@ const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, currentUser => {
+            const userEmail=currentUser?.email || user?.email
+            const loggedUser={email:userEmail}
             setUser(currentUser);
-            console.log('current user', currentUser);
+            // console.log('current user', currentUser);
+            if(currentUser){
+                
+                axios.post('https://car-doctor-server-beta-peach.vercel.app/jwt',loggedUser,{withCredentials:true})
+                .then(res=>{
+                    // console.log('token respon',res.data)
+                })
+
+            }
+            else{
+                axios.post('https://car-doctor-server-beta-peach.vercel.app/logout',loggedUser,{withCredentials:true})
+                .then(res =>{
+                    // console.log(res.data)
+                })
+            }
             setLoading(false);
         });
         return () => {
